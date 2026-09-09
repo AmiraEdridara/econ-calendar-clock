@@ -47,8 +47,9 @@ first when the device shows nothing.
 | Active buzzer | + | D25 |
 | | − | D26 |
 
-The buzzer's `−` sits on a GPIO held low rather than GND — that was left over from
-driving a passive buzzer in antiphase, and works fine as a ground return.
+The buzzer's `−` goes to a GPIO, not GND: the firmware holds D26 low and it acts as
+the ground return. If you wire `−` straight to GND instead, that works too — but the
+`pinMode(BUZZER_N, OUTPUT)` line is what makes the D26 version work, so don't drop it.
 
 Avoid GPIO 1 and 3 (RX0/TX0). Anything wired there blocks uploads.
 

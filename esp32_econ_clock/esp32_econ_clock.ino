@@ -25,7 +25,7 @@ const char* API_URL   = SECRET_API_URL;
 #define OLED_W 128
 #define OLED_H 64
 #define BUZZER   25   // buzzer +
-#define BUZZER_N 26   // buzzer - (drive it opposite for ~2x volume)
+#define BUZZER_N 26   // buzzer - (held low in code as the ground return)
 
 const unsigned long POLL_MS  = 10UL * 60UL * 1000UL;  // 10 min
 const unsigned long RETRY_MS = 45UL * 1000UL;         // after a failed poll / 503
