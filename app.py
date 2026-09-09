@@ -74,7 +74,24 @@ def _refresh_loop():
             time.sleep(RETRY_SECONDS)
 
 
-threading.Thread(target=_refresh_loop, daemon=True).start()
+_refresher_started = False
+_refresher_lock = threading.Lock()
+
+
+@app.before_request
+def _start_refresher():
+    """Start the refresh thread inside the worker process.
+
+    Starting it at import time is unreliable under gunicorn: if the app is
+    imported before the fork, the thread keeps running in the parent and the
+    worker that serves requests never sees the cache fill.
+    """
+    global _refresher_started
+    if not _refresher_started:
+        with _refresher_lock:
+            if not _refresher_started:
+                threading.Thread(target=_refresh_loop, daemon=True).start()
+                _refresher_started = True
 
 @app.route("/next-events")
 def next_events():
