@@ -8,6 +8,7 @@
 
 #include <WiFi.h>
 #include <HTTPClient.h>
+#include <WiFiClientSecure.h>
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
@@ -106,9 +107,21 @@ time_t parseIsoUtc(const char* s) {
 bool fetchNextEvent() {
   if (WiFi.status() != WL_CONNECTED) return false;
 
+  // Render serves HTTPS, a local Flask box serves HTTP - support both.
+  // setInsecure() skips certificate checking; fine for public calendar data,
+  // and it avoids shipping a CA bundle that expires.
+  WiFiClientSecure secure;
+  WiFiClient plain;
   HTTPClient http;
-  http.begin(API_URL);
-  http.setTimeout(8000);
+
+  if (String(API_URL).startsWith("https")) {
+    secure.setInsecure();
+    http.begin(secure, API_URL);
+  } else {
+    http.begin(plain, API_URL);
+  }
+  http.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS);
+  http.setTimeout(12000);        // TLS handshake needs more headroom
   int code = http.GET();
 
   if (code != 200) {                 // 503 = server still warming up
