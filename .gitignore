@@ -4,5 +4,4 @@ __pycache__/
 .env
 arduino_secrets.h
 *.mov
-!demo.mp4
 *.mp4

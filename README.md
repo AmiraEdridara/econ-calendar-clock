@@ -4,7 +4,7 @@ A desk device that shows the next major macroeconomic release (CPI, NFP, FOMC, E
 and counts down to it, with an audible alert before it drops. No phone, no screen,
 no tab open — just look up.
 
-https://raw.githubusercontent.com/AmiraEdridara/econ-calendar-clock/master/demo.mp4
+https://github.com/user-attachments/assets/c2b6b21f-2392-41ae-992e-89652c02800b
 
 ## How it works
 
