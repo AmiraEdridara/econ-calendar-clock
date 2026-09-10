@@ -83,3 +83,8 @@ Set `APIFY_TOKEN` in the host's environment; `.env` is gitignored and won't trav
   records have no `title` at all.
 - Free hosting tiers sleep after ~15 minutes idle, which is shorter than the poll
   interval, so a cold boot returns `503 warming_up`. The firmware retries after 45s.
+- Read the response with `http.getString()`, never `http.getStream()`. gunicorn
+  replies chunked, and the raw stream still holds the chunk-size lines — ArduinoJson
+  parses that leading hex length as a valid number and hands back an empty array
+  with no error. Flask's dev server sends `Content-Length`, so it only breaks in
+  production.

@@ -29,7 +29,7 @@ const char* API_URL   = SECRET_API_URL;
 #define BUZZER_N 26   // buzzer - (held low in code as the ground return)
 
 const unsigned long POLL_MS  = 10UL * 60UL * 1000UL;  // 10 min
-const unsigned long RETRY_MS = 15UL * 1000UL;         // after a failed poll / 503
+const unsigned long RETRY_MS = 45UL * 1000UL;         // after a failed poll / 503
 
 Adafruit_SSD1306 oled(OLED_W, OLED_H, &Wire, -1);
 
@@ -161,10 +161,7 @@ bool fetchNextEvent() {
   time_t best = 0;
   String bestName = "";
 
-  JsonArray arr = doc.as<JsonArray>();
-  Serial.printf("got %u events, now=%ld\n", (unsigned)arr.size(), (long)now);
-
-  for (JsonObject ev : arr) {
+  for (JsonObject ev : doc.as<JsonArray>()) {
     const char* dt = ev["datetime"];
     const char* nm = ev["name"];
     if (!dt || !nm) continue;
@@ -258,14 +255,7 @@ void setup() {
   }
   showMessage("Connecting WiFi...");
 
-  Serial.println("\n--- WiFi scan ---");
-  int n = WiFi.scanNetworks();
-  for (int i = 0; i < n; i++) {
-    Serial.printf("  [%s]  rssi=%d  ch=%d  enc=%d\n",
-                  WiFi.SSID(i).c_str(), WiFi.RSSI(i),
-                  WiFi.channel(i), WiFi.encryptionType(i));
-  }
-  Serial.printf("--- connecting to [%s] ---\n", WIFI_SSID);
+  Serial.printf("\nconnecting to [%s]...\n", WIFI_SSID);
 
   WiFi.mode(WIFI_STA);
   WiFi.setAutoReconnect(true);
@@ -295,7 +285,6 @@ void loop() {
   unsigned long wait = haveData ? POLL_MS : RETRY_MS;
   if (millis() - lastPoll > wait) {
     lastPoll = millis();
-    Serial.printf("polling (uptime %lus)...\n", millis() / 1000);
     fetchNextEvent();
   }
 
