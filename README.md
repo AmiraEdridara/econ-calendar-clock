@@ -55,6 +55,8 @@ Avoid GPIO 1 and 3 (RX0/TX0). Anything wired there blocks uploads.
 
 ### Simulate it (Wokwi)
 
+<img width="773" alt="Wokwi wiring diagram: ESP32 with SSD1306 OLED and buzzer" src="https://github.com/user-attachments/assets/f36eb6d1-ae0d-4374-9bcb-2b1e643950f8" />
+
 No hardware needed to try it:
 
 1. Open [wokwi.com/projects/new/esp32](https://wokwi.com/projects/new/esp32)
