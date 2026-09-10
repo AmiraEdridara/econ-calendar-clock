@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "author": "Amira",
+  "editor": "wokwi",
+  "parts": [
+    { "type": "board-esp32-devkit-c-v4", "id": "esp", "top": 0, "left": 0, "attrs": {} },
+    { "type": "board-ssd1306", "id": "oled1", "top": -100, "left": 190, "attrs": { "i2cAddress": "0x3c" } },
+    { "type": "wokwi-buzzer", "id": "bz1", "top": 100, "left": 200, "attrs": { "volume": "0.1" } }
+  ],
+  "connections": [
+    [ "esp:3V3", "oled1:VCC", "red",   [ "h20", "v-40" ] ],
+    [ "esp:GND.1", "oled1:GND", "black", [ "h30", "v-30" ] ],
+    [ "esp:D22", "oled1:SCL", "blue",  [ "h40", "v-20" ] ],
+    [ "esp:D21", "oled1:SDA", "green", [ "h50", "v-10" ] ],
+    [ "esp:D25", "bz1:2", "purple", [ "h20", "v40" ] ],
+    [ "esp:D26", "bz1:1", "gray",   [ "h30", "v50" ] ]
+  ],
+  "dependencies": {}
+}

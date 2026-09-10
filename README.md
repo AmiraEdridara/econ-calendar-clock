@@ -53,6 +53,21 @@ the ground return. If you wire `−` straight to GND instead, that works too —
 
 Avoid GPIO 1 and 3 (RX0/TX0). Anything wired there blocks uploads.
 
+### Simulate it (Wokwi)
+
+No hardware needed to try it:
+
+1. Open [wokwi.com/projects/new/esp32](https://wokwi.com/projects/new/esp32)
+2. Click the **diagram.json** tab and replace its contents with
+   [`wokwi/diagram.json`](wokwi/diagram.json) from this repo
+3. Paste `esp32_econ_clock/esp32_econ_clock.ino` into **sketch.ino**, and replace the
+   `arduino_secrets.h` include with the three `const char*` values inline
+4. Use Wokwi's own network: SSID `Wokwi-GUEST`, empty password
+5. Point `API_URL` at the deployed API and hit play
+
+The simulated OLED and buzzer behave like the real ones, so it is a quick way to
+change the layout or the alert rhythms without touching the breadboard.
+
 ## Running it
 
 ```bash
