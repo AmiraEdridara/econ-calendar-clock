@@ -29,7 +29,7 @@ const char* API_URL   = SECRET_API_URL;
 #define BUZZER_N 26   // buzzer - (held low in code as the ground return)
 
 const unsigned long POLL_MS  = 10UL * 60UL * 1000UL;  // 10 min
-const unsigned long RETRY_MS = 45UL * 1000UL;         // after a failed poll / 503
+const unsigned long RETRY_MS = 15UL * 1000UL;         // after a failed poll / 503
 
 Adafruit_SSD1306 oled(OLED_W, OLED_H, &Wire, -1);
 
@@ -105,7 +105,11 @@ time_t parseIsoUtc(const char* s) {
 }
 
 bool fetchNextEvent() {
-  if (WiFi.status() != WL_CONNECTED) return false;
+  if (WiFi.status() != WL_CONNECTED) {
+    Serial.printf("wifi down (status=%d), reconnecting\n", WiFi.status());
+    WiFi.reconnect();
+    return false;
+  }
 
   // Render serves HTTPS, a local Flask box serves HTTP - support both.
   // setInsecure() skips certificate checking; fine for public calendar data,
@@ -125,7 +129,8 @@ bool fetchNextEvent() {
   int code = http.GET();
 
   if (code != 200) {                 // 503 = server still warming up
-    Serial.printf("HTTP %d\n", code);
+    Serial.printf("HTTP %d (%s), free heap %u\n",
+                  code, http.errorToString(code).c_str(), ESP.getFreeHeap());
     http.end();
     return false;
   }
@@ -136,10 +141,16 @@ bool fetchNextEvent() {
   f["name"] = true;
   f["datetime"] = true;
 
+  // Read via getString(), not getStream(): gunicorn replies with
+  // Transfer-Encoding: chunked, and the raw stream still carries the chunk
+  // size lines. ArduinoJson parses that leading hex length as a valid number,
+  // so you get no error and an empty array. getString() de-chunks first.
+  String payload = http.getString();
+  http.end();
+
   JsonDocument doc;
   DeserializationError err =
-      deserializeJson(doc, http.getStream(), DeserializationOption::Filter(filter));
-  http.end();
+      deserializeJson(doc, payload, DeserializationOption::Filter(filter));
 
   if (err) {
     Serial.printf("JSON error: %s\n", err.c_str());
@@ -150,7 +161,10 @@ bool fetchNextEvent() {
   time_t best = 0;
   String bestName = "";
 
-  for (JsonObject ev : doc.as<JsonArray>()) {
+  JsonArray arr = doc.as<JsonArray>();
+  Serial.printf("got %u events, now=%ld\n", (unsigned)arr.size(), (long)now);
+
+  for (JsonObject ev : arr) {
     const char* dt = ev["datetime"];
     const char* nm = ev["name"];
     if (!dt || !nm) continue;
@@ -161,7 +175,10 @@ bool fetchNextEvent() {
     }
   }
 
-  if (best == 0) return false;
+  if (best == 0) {
+    Serial.println("no future events in the response");
+    return false;
+  }
 
   if (best != eventTime) {                 // a different event than before
     buzzed = false;                        // re-arm the 5-minute alert
@@ -251,6 +268,7 @@ void setup() {
   Serial.printf("--- connecting to [%s] ---\n", WIFI_SSID);
 
   WiFi.mode(WIFI_STA);
+  WiFi.setAutoReconnect(true);
   WiFi.begin(WIFI_SSID, WIFI_PASS);
   int tries = 0;
   while (WiFi.status() != WL_CONNECTED) {
@@ -277,6 +295,7 @@ void loop() {
   unsigned long wait = haveData ? POLL_MS : RETRY_MS;
   if (millis() - lastPoll > wait) {
     lastPoll = millis();
+    Serial.printf("polling (uptime %lus)...\n", millis() / 1000);
     fetchNextEvent();
   }
 
